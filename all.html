@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html manifest="NETWORK">
+  <head>
+    <meta charset = "utf-8">
+    <meta name="viewport" content="">
+    <title> Stock Trading Advisory System </title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/mainStyles.css" type="text/css" media="screen" rel="stylesheet"/>
+    <link rel="icon" type="image/ico" href="img/favicon.ico" />
+    <script type="text/javascript" src="javascript/ajax.js" charset="utf-8"></script> 
+    <script type="text/javascript" src="javascript/validation.js" charset="utf-8"></script> 
+    <script type="text/javascript" src="javascript/jquery-1.10.2.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="javascript/json2.js"></script>
+    <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+    </head>
+  <body>
+    <div class="header" id="headerLogo" style="background-image: url(img/headerfill.gif)">
+      <a href="" ><img src="img/stas_logo_final.gif" id="logo" /></a>
+    </div>
+    <div class="header" id="rightHeader" style="background-image: url(img/headerfill.gif)">
+      <p id="headerTitle"> Stock Trading Advisory System </p>
+    </div>   
+
+    <div class="navbar ">
+  <div class="navbar-inner">
+    <div class="container"><!-- Collapsable nav bar -->
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+ 
+      <!-- Your site name for the upper left corner of the site -->
+      <a class="brand" href="stas.html">Daily pricing</a>
+      <a class="brand" href="individual.html">Individual share</a>
+      <a class="brand" href="all.html">All shares</a>
+ 
+      <!-- Start of the nav bar content -->
+      <div class="nav-collapse"><!-- Other nav bar content -->
+ 
+        <!-- The drop down menu -->
+        <ul class="nav pull-right">
+          <!-- trigger the sign up modal -->
+          <li><a href="/users/sign_up"id="btn-show-modal-signup">Sign Up</a></li>
+          <!-- trigger the sign in modal -->
+          <li><a href="/users/sign_up" id="btn-show-modal-signin" data-toggle="modal">Sign In</a></li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- Sign in Modal -->
+<div id="signInModal" class="modal hide " tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Sign in</h3>
+  </div>
+  <div class="modal-body">
+    <form method="post" name="loginForm" id="loginForm">
+
+      <div class="input-prepend">
+        <span class="add-on"><i class="icon-user"></i></span>
+          <input type="text" class="span3"  name="email" id="email" placeholder="Enter Email" value="">
+      </div>
+      <div id="criteria_error_email"></div>
+
+      <div class="input-prepend">
+        <span class="add-on"><i class="icon-lock"></i></span>
+        <input type="password" class="span3" name="loginPassword" id="loginPassword" placeholder="Enter Password" value="">
+      </div>
+      <div  id="criteria_error_pass"></div>
+        <p><button class="btn btn-success" onclick="return validateSignIn();">Sign in</button></p><a href='<?=base_url();?/forgotpassword'>Forgot Password</a></p>
+    </form>
+  </div>
+</div>
+
+<!-- Sign up Modal -->
+<div id="signUpModal" class="modal hide " tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Sign up</h3>
+  </div>
+  <div class="modal-body">
+    <form method="post" name="registerForm">
+
+      <label class="control-label">First Name</label>
+      <div class="input-prepend">
+        <span class="add-on"><i class="icon-user"></i></span>
+          <input type="text" class="span3"  name="fname" id="fname" placeholder="First Name" value="">
+      </div>
+      <div id="criteria_error_fname"></div></p>
+   
+      <label class="control-label">Last Name</label>
+      <div class="input-prepend">
+        <span class="add-on"><i class="icon-user"></i></span>
+          <input type="text" class="span3" id="lname" name="lname" placeholder="Last Name">
+      </div>
+      <div id="criteria_error_lname"></div></p>
+
+      <label class="control-label">Email</label>
+          <div class="input-prepend">
+        <span class="add-on"><i class="icon-envelope"></i></span>
+          <input type="text" class="span3" id="email2" name="email2" placeholder="Email">
+      </div>
+      <div id="criteria_error_email2"></div></p>
+
+      <label class="control-label">Gender</label>
+          <div class="input-prepend">
+          <p><div id="gender" name="gender" class="btn-group" data-toggle="buttons-radio">
+                    <button type="button" class="btn btn-info">Male</button>
+                    <button type="button" class="btn btn-info">Female</button>
+                  </div></p>
+      </div>
+
+
+      <label class="control-label">Password</label>
+          <div class="input-prepend">
+        <span class="add-on"><i class="icon-lock"></i></span>
+          <input type="Password" id="pass2" name="pass2" placeholder="Password">
+        </div>
+        <div id="criteria_error_pass2"></div></p>
+
+      <label class="control-label">Confirm Password</label>
+          <div class="input-prepend">
+        <span class="add-on"><i class="icon-lock"></i></span>
+          <input type="Password" id="conpasswd" name="conpasswd" placeholder="Re-enter Password">
+        </div>
+        <div id="criteria_error_cpass"></div></p>
+
+    <label class="control-label"></label>
+        <div class="controls">
+         <button class="btn btn-success" onclick="return validateSignUp();" >Create My Account</button>
+        </div>
+
+  </div>  
+    </form>
+  </div>
+</div>
+
+
+<!-- Body -->
+      <div id="main" class="container clear-top">
+      <div id='table_div'></div>
+      </br>
+    </div>
+
+
+<div class="container">
+      <div class="row">
+       <div class="span12">
+        <div id="footer">
+
+           <ul class="footer">
+
+            <p> Stock Trading Advisory System<br>
+            CS3051 Coursework2 Team C</p>
+
+        </div>
+     </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $(function(){
+      $("#btn-show-modal-signin").click(function(e){
+          e.preventDefault();
+
+          $("#signInModal").modal('show');
+      });
+  });
+
+    $(function(){
+      $("#btn-show-modal-signup").click(function(e){
+          e.preventDefault();
+
+          $("#signUpModal").modal('show');
+      });
+  });
+
+</script>
+
+  </body>
+</html>
