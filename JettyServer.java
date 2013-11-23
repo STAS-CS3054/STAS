@@ -1,6 +1,7 @@
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -19,6 +20,7 @@ public class JettyServer {
         handler1.setResourceBase("WebRoot/static/");
 
         ServletContextHandler handler2 = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        handler2.setContextPath("/servlets");
         handler2.addServlet(new ServletHolder(new UserProfileServlet()), "/UserProfileServlet");
 
         HandlerList handlers = new HandlerList();
