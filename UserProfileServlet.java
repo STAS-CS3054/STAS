@@ -9,9 +9,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.*;
 
 import org.json.simple.JSONObject;
+import java.sql.*;
 
 /**
  * Servlet implementation class UserProfileServlet
@@ -20,117 +22,219 @@ import org.json.simple.JSONObject;
 public class UserProfileServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	PrintWriter out;
-	DBConnection db_connect = new DBConnection();
+	Connection db_connect;
+	DBConnection to_connect = new DBConnection();
+	HttpSession session;
+	AccountHandler user_processing = new AccountHandler();
 
     /**
      * Default constructor. 
+     * Sets up a database connection
      */
     public UserProfileServlet() {
-        // TODO Auto-generated constructor stub
-    	db_connect.setConnection();
+    	db_connect = to_connect.setConnection();
     }
 
 	/**
+	 * Processes user requests, e.g. user log in or create user
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 * @produces(MediaType.APPLICATION_JSON)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// do some filter here for user profile/yahoo query
 		
-		response.setContentType("application/json");
-	    out = response.getWriter();
-
-	    String email = request.getParameter("email");
-	    String password = request.getParameter("password");
-
-	    responseUser(request, email, password);
-	    
-	   /** String first_name = request.getParameter("first name");
-	    String surname = request.getParameter("surname");
-	    String gender = request.getParameter("gender");
-	    
-	    JSONObject check = new JSONObject();
-	    int ok = 1;
-	    
-	    if (email == null){
-	    	check.put("email", "error");
-	    	ok = 0;
-	    }
-	    if (password == null){
-	    	check.put("password", "error");
-	    	ok = 0;
-	    }
-	    if (first_name == null){
-	    	check.put("first name", "error");
-	    	ok = 0;
-	    }
-	    if (surname == null){
-	    	check.put("surname", "error");
-	    	ok = 0;
-	    }
-	    if (gender == null){
-	    	check.put("gender", "error");
-	    	ok = 0;	
-	    }
-	    
-	    if (ok == 0){
-	    	out.print(check);
-	    	out.flush();
-	    }
-	    else {
-	    	createUser(res, email, password, first_name, surname, gender);
-	    }
-	    */
-
-	}
-	
-	private void responseUser(HttpServletRequest request, String email,
-			  String password) throws IOException{
-		  BufferedReader test = new BufferedReader(new FileReader("test.txt"));
-		  String test_email = test.readLine();
-		  String test_password = test.readLine();
-
-		  JSONObject result = new JSONObject();
-		  
-		  if (email.equalsIgnoreCase(test_email)){
-			  	if (password.equals(test_password)){
-		    		result.put("email", email);
-		    		result.put("password", "correct");
-		    		out.print(result);
-		    		out.flush();
-		    	}
-		    	else {
-		    		result.put("email", email);
-		    		result.put("password", "wrong");
-		    	}
-		    
-		    }
-		    else {
-		    	result.put("email", "invalid");
-		    	result.put("password", "wrong");
-		    	out.print(result);
-		    	out.flush();
-		    }
-		  
-	  }
-	
-	private void createUser(HttpServletResponse resp, String email, String password, String first_name,
-			String surname, String gender) throws IOException{
-		
-		// make sure you remember to actually connect to the db
-		
-		JSONObject result = new JSONObject();
-		result.put("email", email);
-		out.print(result);
-		out.flush();
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @produces(MediaType.APPLICATION_JSON)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		System.out.println("We get here");
+		// do some filter here for user profile/yahoo query
+		// was to work using unique form values
+				
+		session = request.getSession();
+				
+		// always returns a JSON
+		response.setContentType("application/json");
+		out = response.getWriter();
+
+		// gets form data
+		String email = request.getParameter("email");
+		String password = request.getParameter("password");
+
+		// log in attempt
+		responseUser(request, email, password);
+			    
+			    
+		// gets other form data (for create user)
+		/** String first_name = request.getParameter("first name");
+		String surname = request.getParameter("surname");
+		String gender = request.getParameter("gender");
+			    
+		// test to make sure the form has all the data needed
+		JSONObject check = new JSONObject();
+		int ok = 1;
+			    
+		// if a field is left empty, sends an error back
+		// also done client-side
+		if (email == null){
+		 	check.put("email", "error");
+		 	ok = 0;
+		}
+		if (password == null){
+			check.put("password", "error");
+			ok = 0;
+		}
+		if (first_name == null){
+			check.put("first name", "error");
+			ok = 0;
+		}
+		if (surname == null){
+			check.put("surname", "error");
+			ok = 0;
+		}
+		if (gender == null){
+			check.put("gender", "error");
+			ok = 0;	
+		}
+		
+	    if (ok == 0){
+			out.print(check);
+			out.flush();
+		}
+		else {
+			createUser(request, email, password, first_name, surname, gender);
+		}
+		*/
+			    
+		// logs out a user
+		//logOut(request);
 	}
 
+	// tests whether log in details are valid
+	private void responseUser(HttpServletRequest request, String email,
+			String password) throws IOException {
+
+		AccountHandler.success_value result = user_processing.logIn(email, password);
+
+		JSONObject to_return = new JSONObject();
+		
+		// if logged in
+		if (result == AccountHandler.success_value.SUCCESS) {
+			// sets up a logged in session
+			if (session.isNew()) {
+				session.setAttribute("loggedin", email);
+			} else {
+				session.invalidate();
+				session.setAttribute("loggedin", email);
+			}
+			// sends back a success JSON
+			to_return.put("email", "success");
+			to_return.put("password", "success");
+			out.print(to_return);
+			out.flush();
+		}
+		// if failed to log in
+		else {
+			// if incorrect email sends back email failure JSON
+			if (result == AccountHandler.success_value.INCORRECT_EMAIL){
+				to_return.put("email", "incorrect");
+				to_return.put("password", "N/A");
+				out.print(to_return);
+				out.flush();
+			}
+			// if incorrect password sends back password failure JSON
+			if (result == AccountHandler.success_value.INCORRECT_PASSWORD){
+				to_return.put("email", "success");
+				to_return.put("password", "incorrect");
+				out.print(to_return);
+				out.flush();
+			}
+			// if sql error sends back sql failure JSON (N/A means SQL error here)
+			if (result == AccountHandler.success_value.SQL_ERROR){
+				to_return.put("email", "N/A");
+				to_return.put("password", "N/A");
+				out.print(to_return);
+				out.flush();
+			}
+		}
+
+	}
+
+	// creates a new user
+	private void createUser(HttpServletResponse resp, String email,
+			String password, String first_name, String surname, String gender)
+			throws IOException {
+
+		boolean result = user_processing.createUser(email, password, first_name, surname, gender);
+
+		if (result) {
+			// sets up a logged in session using the new user
+			if (session.isNew()) {
+				session.setAttribute("loggedin", email);
+			} else {
+				session.invalidate();
+				session.setAttribute("loggedin", email);
+			}
+
+			// sends back a success JSON
+			JSONObject to_return = new JSONObject();
+			to_return.put("creation", "success");
+			out.print(to_return);
+			out.flush();
+		}
+		//
+		else {
+			JSONObject to_return = new JSONObject();
+			to_return.put("creation", "failure");
+			out.print(to_return);
+			out.flush();
+		}
+	}
+
+	
+	// logs out the user (deletes the session)
+	private void logOut(HttpServletResponse resp) {
+		session.invalidate();
+	}
+	
+	private void removeUser(HttpServletResponse resp, String email, String password){
+		AccountHandler.success_value result = user_processing.removeUser(email, password);
+		
+		JSONObject to_return = new JSONObject();
+		
+		if (result == AccountHandler.success_value.SUCCESS) {
+			// sets up a logged in session
+			to_return.put("deleted", "success");
+			out.print(to_return);
+			out.flush();
+		}
+		// if failed to log in
+		else {
+			// if incorrect email sends back email failure JSON
+			if (result == AccountHandler.success_value.INCORRECT_EMAIL){
+				to_return.put("email", "incorrect");
+				to_return.put("password", "N/A");
+				out.print(to_return);
+				out.flush();
+			}
+			// if incorrect password sends back password failure JSON
+			if (result == AccountHandler.success_value.INCORRECT_PASSWORD){
+				to_return.put("email", "success");
+				to_return.put("password", "incorrect");
+				out.print(to_return);
+				out.flush();
+			}
+			// if sql error sends back sql failure JSON (N/A means SQL error here)
+			if (result == AccountHandler.success_value.SQL_ERROR){
+				to_return.put("email", "N/A");
+				to_return.put("password", "N/A");
+				out.print(to_return);
+				out.flush();
+			}
+		}
+		session.invalidate();
+		
+	}
+	
 }
+
