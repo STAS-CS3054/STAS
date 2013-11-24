@@ -27,13 +27,6 @@ public class AccountHandler {
 	DBConnection db = new DBConnection();
 	Connection conn;
 	
-	public static void main(String[] args) {
-		AccountHandler h = new AccountHandler();
-		System.out.println(h.createUser("Test@test.test", "Test", "Testy", "McTesterson", "Male"));
-		System.out.println(h.logIn("Test@test.test", "Test"));
-		System.out.println(h.removeUser("Test@test.test", "Test"));
-	}
-	
 	public boolean createUser(String email, String password, String forename, String surname, String gender) {
 		conn = db.setConnection();
 		ResultSet rs;
@@ -96,12 +89,14 @@ public class AccountHandler {
 		conn = db.setConnection();
 		ResultSet rs;
 		try {
+			// Check that the username and password is correct
 			Statement stmt = conn.createStatement();
 			rs = stmt.executeQuery("SELECT u." + IDUSER + ", u." + PASSWORD_HASH + ", u." + PASSWORD_SALT + " FROM " + USER + " AS u WHERE " + EMAIL + "=\'" + email.toLowerCase() + "\';");
 			if (rs.next()) {
 				byte[] actual_hash = rs.getBytes(PASSWORD_HASH);
 				byte[] salt = rs.getBytes(PASSWORD_SALT);
 				if (Arrays.equals(hashPassword(password, salt), actual_hash)) {
+					// If the username and password are correct, delete the user with the user ID that was found.
 					stmt.executeUpdate("DELETE FROM " + USER + " WHERE " + IDUSER + "=" + rs.getInt(IDUSER) + ";");
 					return success_value.SUCCESS;
 				} else {
@@ -120,7 +115,9 @@ public class AccountHandler {
 	
 	public byte[] hashPassword(String password, byte[] salt) {
 		try {
+			// Get the password as a byte array
 			byte[] password_bytes = password.getBytes("UTF-8");
+			// Add the password and salt to the MessageDigest, and then hash them.
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
 			md.update(password_bytes);
 			return md.digest(salt);
