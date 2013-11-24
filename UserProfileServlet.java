@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -197,44 +196,43 @@ public class UserProfileServlet extends HttpServlet {
 		session.invalidate();
 	}
 	
+	// removes a user completely from the database
 	private void removeUser(HttpServletResponse resp, String email, String password){
+		
 		AccountHandler.success_value result = user_processing.removeUser(email, password);
 		
 		JSONObject to_return = new JSONObject();
 		
+		// if user was deleted
 		if (result == AccountHandler.success_value.SUCCESS) {
-			// sets up a logged in session
+			// invalidates user session
+			session.invalidate();
 			to_return.put("deleted", "success");
 			out.print(to_return);
 			out.flush();
 		}
-		// if failed to log in
+		// if failed to delete user
 		else {
 			// if incorrect email sends back email failure JSON
 			if (result == AccountHandler.success_value.INCORRECT_EMAIL){
-				to_return.put("email", "incorrect");
-				to_return.put("password", "N/A");
+				to_return.put("deleted", "email");
 				out.print(to_return);
 				out.flush();
 			}
 			// if incorrect password sends back password failure JSON
 			if (result == AccountHandler.success_value.INCORRECT_PASSWORD){
-				to_return.put("email", "success");
-				to_return.put("password", "incorrect");
+				to_return.put("deleted", "password");
 				out.print(to_return);
 				out.flush();
 			}
 			// if sql error sends back sql failure JSON (N/A means SQL error here)
 			if (result == AccountHandler.success_value.SQL_ERROR){
-				to_return.put("email", "N/A");
-				to_return.put("password", "N/A");
+				to_return.put("deleted", "sql");
 				out.print(to_return);
 				out.flush();
 			}
 		}
-		session.invalidate();
 		
 	}
 	
 }
-
